@@ -34,7 +34,7 @@ TEST(ClockReplacerTest, BasicTest) {
   EXPECT_EQ(6, clock_replacer.Size());
 
   // Scenario: get three victims from the clock.
-  /*
+  
   int value;
   clock_replacer.Victim(&value);
   EXPECT_EQ(1, value);
@@ -42,7 +42,7 @@ TEST(ClockReplacerTest, BasicTest) {
   EXPECT_EQ(2, value);
   clock_replacer.Victim(&value);
   EXPECT_EQ(3, value);
-
+  /*
   // Scenario: pin elements in the replacer.
   // Note that 3 has already been victimized, so pinning 3 should have no effect.
   clock_replacer.Pin(3);

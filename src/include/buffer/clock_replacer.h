@@ -32,6 +32,83 @@ struct Frame{
   Frame* next;
 };
 
+struct Clock{
+  frame_id_t current_id;
+  size_t c_size;
+  Frame* head;
+  Frame* lastnode;
+  Frame* first_head;
+
+  Clock(size_t size)
+  {
+    c_size = size;
+    head = NULL;
+  }
+
+  void add(frame_id_t id)
+  {
+    Frame* temp = new Frame();
+    temp->id = id;
+    temp->ref_id = false;
+    temp->next = NULL;
+
+    if (head == NULL)
+    {
+      current_id = id;
+      first_head = temp;
+      head = temp;
+      return;
+    }
+
+    Frame* lastnode = head;
+    unsigned int iter = 1;
+    while(lastnode->next != NULL)
+    {
+      lastnode = lastnode->next;
+      ++iter;
+    }
+
+    if (iter == c_size)
+    {
+      std::cout<<"Current id "<<current_id<<std::endl;
+      std::cout<<"Here"<<std::endl;
+      temp->next = first_head;
+    }
+    lastnode->next = temp;
+
+    return;
+
+  }
+
+  size_t size()
+  {
+    Frame* temp = head->next;
+    int count = 1;
+
+    while((temp->next != NULL))
+    {
+      if(temp->next->id == current_id) break;
+      temp = temp->next;
+      count += 1;
+    }
+    return count + 1 ;
+  }
+
+  void findVictim(frame_id_t* value)
+  {
+    Frame* temp = head;
+    while(temp->ref_id)
+    {
+      temp = temp->next;
+    }
+    head = temp->next;
+    current_id = temp->next->id;
+    *value = temp->id;
+
+    delete temp;
+  }
+};
+
 
 
 /**
@@ -59,7 +136,7 @@ class ClockReplacer : public Replacer {
   size_t Size() override;
 
  private:
- Frame* head;
+ Clock* clock;
   // TODO(student): implement me!
 };
 
