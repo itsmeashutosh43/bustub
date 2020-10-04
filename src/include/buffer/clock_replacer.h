@@ -16,10 +16,23 @@
 #include <mutex>  // NOLINT
 #include <vector>
 
+#include <iostream>
+
 #include "buffer/replacer.h"
 #include "common/config.h"
 
 namespace bustub {
+
+/**
+ * Structure to hold all information in a single frame 
+ */
+struct Frame{
+  frame_id_t id;
+  bool ref_id;
+  Frame* next;
+};
+
+
 
 /**
  * ClockReplacer implements the clock replacement policy, which approximates the Least Recently Used policy.
@@ -46,6 +59,7 @@ class ClockReplacer : public Replacer {
   size_t Size() override;
 
  private:
+ Frame* head;
   // TODO(student): implement me!
 };
 
