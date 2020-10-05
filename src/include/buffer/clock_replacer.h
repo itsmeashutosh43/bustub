@@ -15,6 +15,7 @@
 #include <list>
 #include <mutex>  // NOLINT
 #include <vector>
+#include <algorithm>
 
 #include <iostream>
 
@@ -38,6 +39,7 @@ struct Clock{
   Frame* head;
   Frame* lastnode;
   Frame* first_head;
+  Frame* circle_head;
 
   Clock(size_t size)
   {
@@ -52,12 +54,14 @@ struct Clock{
     temp->ref_id = false;
     temp->next = NULL;
 
+
     if (head == NULL)
     {
       current_id = id;
       first_head = temp;
       head = temp;
       return;
+
     }
 
     Frame* lastnode = head;
@@ -70,8 +74,6 @@ struct Clock{
 
     if (iter == c_size)
     {
-      std::cout<<"Current id "<<current_id<<std::endl;
-      std::cout<<"Here"<<std::endl;
       temp->next = first_head;
     }
     lastnode->next = temp;
@@ -82,8 +84,10 @@ struct Clock{
 
   size_t size()
   {
-    Frame* temp = head->next;
-    int count = 1;
+    if (head == NULL) return 0;
+
+    Frame* temp = head;
+    int count = 0;
 
     while((temp->next != NULL))
     {
@@ -94,19 +98,56 @@ struct Clock{
     return count + 1 ;
   }
 
-  void findVictim(frame_id_t* value)
+  void findVictim(frame_id_t* value, frame_id_t &idx)
   {
     Frame* temp = head;
+    idx = 0;
+
     while(temp->ref_id)
     {
+      idx += 1;
       temp = temp->next;
     }
     head = temp->next;
-    current_id = temp->next->id;
     *value = temp->id;
+    if (temp->next == NULL) return;
+    current_id = temp->next->id;
+    
 
     delete temp;
   }
+
+  void remove(frame_id_t id, frame_id_t &idx)
+  {
+    Frame* temp = head;
+    idx = 0;
+    while(temp->id != id) 
+    {temp = temp->next;
+    idx += 1;
+    }
+
+    head = temp->next;
+  }
+
+  bool already_present(frame_id_t id)
+  {
+    Frame* temp = head;
+
+    while((temp->next != NULL))
+    {
+      if(temp->next->id == current_id) break;
+      if(temp->id == id)
+      {
+        temp->ref_id = true;
+        return true;
+      } 
+      temp = temp->next;
+    }
+    return false;
+  }
+
+
+  
 };
 
 
@@ -137,6 +178,7 @@ class ClockReplacer : public Replacer {
 
  private:
  Clock* clock;
+ std::vector<frame_id_t> pages;
   // TODO(student): implement me!
 };
 
