@@ -27,126 +27,152 @@ namespace bustub {
 /**
  * Structure to hold all information in a single frame 
  */
-struct Frame{
-  frame_id_t id;
+struct ClockSlot{
+  frame_id_t value;
+  frame_id_t position;
   bool ref_id;
-  Frame* next;
+  ClockSlot* next;
+
+
+  ClockSlot()
+  {
+    this->position = position;
+    this->value = -1;
+    this->ref_id = false;
+  }
 };
 
 struct Clock{
-  frame_id_t current_id;
-  size_t c_size;
-  Frame* head;
-  Frame* lastnode;
-  Frame* first_head;
-  Frame* circle_head;
+  frame_id_t current_head_id;
+  frame_id_t ticker_head_pos;
+  ClockSlot* head;
 
   Clock(size_t size)
   {
-    c_size = size;
-    head = NULL;
+    head = new ClockSlot();
+    head->position = 1;
+    head->next = NULL;
+    current_head_id = 1;
+    ticker_head_pos = 1;
+    
+
+    for(size_t i = 1 ; i <= size -1 ; i++)
+    {
+      ClockSlot* temp = new ClockSlot();
+      temp->position = i+1;
+      ClockSlot* lastnode = head;
+      size_t iter = 0;
+      while(lastnode->next != NULL)
+      {
+        iter+= 1;
+        lastnode = lastnode->next;
+      }
+
+      if (iter == size-2)
+      {
+        temp->next = head;
+
+      }
+      
+      lastnode->next = temp;
+    }
   }
 
-  void add(frame_id_t id)
+  void add(frame_id_t value)
   {
-    Frame* temp = new Frame();
-    temp->id = id;
-    temp->ref_id = false;
-    temp->next = NULL;
-
-
-    if (head == NULL)
+    ClockSlot* temp = head;
+    while ((temp->value != -1))
     {
-      current_id = id;
-      first_head = temp;
-      head = temp;
-      return;
-
+      temp = temp->next;
     }
-
-    Frame* lastnode = head;
-    unsigned int iter = 1;
-    while(lastnode->next != NULL)
-    {
-      lastnode = lastnode->next;
-      ++iter;
-    }
-
-    if (iter == c_size)
-    {
-      temp->next = first_head;
-    }
-    lastnode->next = temp;
-
-    return;
-
+    temp->value = value;  
+    
   }
 
   size_t size()
   {
-    if (head == NULL) return 0;
 
-    Frame* temp = head;
-    int count = 0;
+    ClockSlot* temp = head->next;
 
-    while((temp->next != NULL))
+    size_t iter = 1;
+    bool n = false;
+    while(current_head_id != temp->position)
     {
-      if(temp->next->id == current_id) break;
-      temp = temp->next;
-      count += 1;
-    }
-    return count + 1 ;
-  }
-
-  void findVictim(frame_id_t* value, frame_id_t &idx)
-  {
-    Frame* temp = head;
-    idx = 0;
-
-    while(temp->ref_id)
-    {
-      idx += 1;
-      temp = temp->next;
-    }
-    head = temp->next;
-    *value = temp->id;
-    if (temp->next == NULL) return;
-    current_id = temp->next->id;
-    
-
-    delete temp;
-  }
-
-  void remove(frame_id_t id, frame_id_t &idx)
-  {
-    Frame* temp = head;
-    idx = 0;
-    while(temp->id != id) 
-    {temp = temp->next;
-    idx += 1;
-    }
-
-    head = temp->next;
-  }
-
-  bool already_present(frame_id_t id)
-  {
-    Frame* temp = head;
-
-    while((temp->next != NULL))
-    {
-      if(temp->next->id == current_id) break;
-      if(temp->id == id)
+      if (temp->value == -1)
       {
-        temp->ref_id = true;
+        temp = temp->next;
+        continue;
+      }
+      n = true;
+      temp = temp->next;
+      iter += 1;
+    }
+    if (!n) --iter;
+    return iter;
+  }
+
+  void findVictim(frame_id_t* value)
+  {
+    ClockSlot* temp = head;
+    ClockSlot* clockHead;
+
+    while(ticker_head_pos != temp->position) temp = temp->next;
+
+    clockHead = temp;
+
+    while(clockHead->ref_id)
+    {
+      clockHead->ref_id = false;
+      clockHead = clockHead->next;
+    }
+
+    *value = clockHead->value;
+    clockHead->value = -1;
+    if (size() == 0)
+    {
+      ticker_head_pos = 1;
+      return;
+    }
+
+    while (clockHead->next->value == -1)clockHead = clockHead->next;
+    ticker_head_pos = clockHead->next->position;
+
+  }
+
+
+  void remove(frame_id_t value)
+  {
+    ClockSlot* temp = head;
+    while ((temp->value != value))
+    {
+      temp = temp->next;
+    }
+    temp->value = -1;
+    temp->ref_id = false;
+    
+  }
+
+  bool already_present(frame_id_t value, frame_id_t mode)
+  {
+    ClockSlot* temp = head->next;
+
+    if(head->value == value) 
+    {
+      if (mode == 1)head->ref_id = true;
+      return true;
+    }
+
+    while((current_head_id != temp->position))
+    {
+      if (temp->value == value)
+      {
+        if (mode == 1)temp->ref_id = true;
         return true;
-      } 
+      }
       temp = temp->next;
     }
     return false;
   }
-
-
   
 };
 
@@ -179,6 +205,7 @@ class ClockReplacer : public Replacer {
  private:
  Clock* clock;
  std::vector<frame_id_t> pages;
+ std::mutex m;
   // TODO(student): implement me!
 };
 

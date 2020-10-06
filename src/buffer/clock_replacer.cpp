@@ -22,41 +22,33 @@ ClockReplacer::ClockReplacer(size_t num_pages) {
 ClockReplacer::~ClockReplacer() = default;
 
 bool ClockReplacer::Victim(frame_id_t *frame_id) { 
-    if (clock->size() == 0) return false;
-    int idx;
-    clock->findVictim(frame_id, idx);
-    pages.erase(pages.begin() + idx);
+    if (Size() == 0) return false;
+    m.lock();
+    clock->findVictim(frame_id);
+    //clock->remove(*frame_id);
+    m.unlock();
     return true;
 }
 
 void ClockReplacer::Pin(frame_id_t frame_id) {
-    int idx;
-    std::vector<int>::iterator it = std::find(pages.begin(), pages.end(), frame_id);
-
-    if (it==pages.end()) return; 
-    clock->remove(frame_id,idx);
-    pages.erase(pages.begin() + idx);  
-    std::cout<<"Size s" << pages.size()<<std::endl;  
-
+    m.lock();
+    if (clock->already_present(frame_id, 0))clock->remove(frame_id);
+    m.unlock();
 }
 
 void ClockReplacer::Unpin(frame_id_t frame_id) {
     
-    if (clock->size() == 0){
-        clock->add(frame_id);
-        pages.push_back(frame_id);
-        return;
-    }
-
-    if (!clock->already_present(frame_id)){
-        clock->add(frame_id);
-        pages.push_back(frame_id);
-    }
+    m.lock();
+    if(!clock->already_present(frame_id,1))clock->add(frame_id);
+    m.unlock();
     
 }
 
-size_t ClockReplacer::Size() { 
-    return clock->size();
+size_t ClockReplacer::Size() {
+    m.lock(); 
+    size_t size_= clock->size();
+    m.unlock();
+    return size_;
 }  // namespace bustub
 
 }
