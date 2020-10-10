@@ -100,11 +100,25 @@ Page* BufferPoolManager::getPage(page_id_t page_id)
   return page;
 }
 
-bool BufferPoolManager::UnpinPageImpl(page_id_t page_id, bool is_dirty) { return false; }
+bool BufferPoolManager::UnpinPageImpl(page_id_t page_id, bool is_dirty) { 
+  Page* p = &pages_[page_id];
+  if (p->pin_count_ <= 0) return false;
+
+  auto it = page_table_.find(page_id);
+  replacer_->Unpin(it->second);
+  return true;
+}
 
 bool BufferPoolManager::FlushPageImpl(page_id_t page_id) {
   // Make sure you call DiskManager::WritePage!
-  return false;
+  auto it = page_table_.find(page_id);
+  if (page_id == INVALID_PAGE_ID) return false;
+  if (it == page_table_.end()) return false;
+
+  Page* page_ = &pages_[page_id];
+  disk_manager_->WritePage(page_id, page_->GetData());
+
+  return true;
 }
 
 Page *BufferPoolManager::NewPageImpl(page_id_t *page_id) {

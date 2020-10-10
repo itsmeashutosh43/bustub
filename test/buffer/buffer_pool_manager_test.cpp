@@ -64,7 +64,7 @@ TEST(BufferPoolManagerTest, BasicTest) {
     EXPECT_EQ(nullptr, bpm->NewPage(&page_id_temp));
   }
 
-  /*
+  
 
   // Scenario: After unpinning pages {0, 1, 2, 3, 4} and pinning another 4 new pages,
   // there would still be one cache frame left for reading page 0.
@@ -72,10 +72,13 @@ TEST(BufferPoolManagerTest, BasicTest) {
     EXPECT_EQ(true, bpm->UnpinPage(i, true));
     bpm->FlushPage(i);
   }
+
+  
   for (int i = 0; i < 5; ++i) {
     EXPECT_NE(nullptr, bpm->NewPage(&page_id_temp));
     bpm->UnpinPage(page_id_temp, false);
   }
+  
   // Scenario: We should be able to fetch the data we wrote a while ago.
   page0 = bpm->FetchPage(0);
   EXPECT_EQ(0, strcmp(page0->GetData(), random_binary_data));
@@ -143,7 +146,7 @@ TEST(BufferPoolManagerTest, DISABLED_SampleTest) {
 
   delete bpm;
   delete disk_manager;
-  */
+  
 }
 
 }  // namespace bustub
