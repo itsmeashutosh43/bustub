@@ -13,10 +13,11 @@
 #pragma once
 
 #include <list>
+#include <iostream>
 #include <mutex>  // NOLINT
 #include <unordered_map>
 
-#include "buffer/lru_replacer.h"
+#include "buffer/clock_replacer.h"
 #include "recovery/log_manager.h"
 #include "storage/disk/disk_manager.h"
 #include "storage/page/page.h"
@@ -93,6 +94,8 @@ class BufferPoolManager {
 
   /** @return pointer to all the pages in the buffer pool */
   Page *GetPages() { return pages_; }
+
+  Page* getPage(page_id_t page_id);
 
   /** @return size of the buffer pool */
   size_t GetPoolSize() { return pool_size_; }

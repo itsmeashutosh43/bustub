@@ -21,7 +21,7 @@ BufferPoolManager::BufferPoolManager(size_t pool_size, DiskManager *disk_manager
     : pool_size_(pool_size), disk_manager_(disk_manager), log_manager_(log_manager) {
   // We allocate a consecutive memory space for the buffer pool.
   pages_ = new Page[pool_size_];
-  replacer_ = new LRUReplacer(pool_size);
+  replacer_ = new ClockReplacer(pool_size);
 
   // Initially, every page is in the free list.
   for (size_t i = 0; i < pool_size_; ++i) {
@@ -42,7 +42,62 @@ Page *BufferPoolManager::FetchPageImpl(page_id_t page_id) {
   // 2.     If R is dirty, write it back to the disk.
   // 3.     Delete R from the page table and insert P.
   // 4.     Update P's metadata, read in the page content from disk, and then return a pointer to P.
-  return nullptr;
+
+  //1.
+  std::unordered_map<page_id_t,frame_id_t>::iterator it = page_table_.find(page_id);
+  Page *page = nullptr;
+  if (it != page_table_.end())
+  {
+    //1.1
+    
+    page = &pages_[page_id];
+    page->pin_count_ ++;
+    replacer_->Pin(page_id);
+    return page;
+  }
+
+  if (free_list_.empty() && replacer_->Size() == 0)
+  {
+    return nullptr;
+  }
+
+  return getPage(page_id);
+}
+
+Page* BufferPoolManager::getPage(page_id_t page_id)
+{
+
+  Page *page = nullptr;
+  Page *R = nullptr;
+
+  //1.2
+  page_id_t id;
+  if (free_list_.size() > 0){
+    id = *(free_list_.begin());
+    free_list_.pop_front();  
+  }
+  else if (replacer_->Size() != 0){
+    bool ans = replacer_->Victim(&id);
+    assert (ans);
+  }
+  R = &pages_[id];
+
+  if (R->IsDirty()){
+    disk_manager_->WritePage(id,R->data_);
+  }
+  
+  //3
+  if (page_table_.find(id) != page_table_.end())page_table_.erase(id);
+  page_table_.insert(std::make_pair(page_id , id));
+
+
+  page = &pages_[page_id];
+
+  //disk_manager_->ReadPage(page_id, page->data_);
+  page->page_id_ = page_id;
+  page->pin_count_ = 1;
+
+  return page;
 }
 
 bool BufferPoolManager::UnpinPageImpl(page_id_t page_id, bool is_dirty) { return false; }
@@ -58,7 +113,18 @@ Page *BufferPoolManager::NewPageImpl(page_id_t *page_id) {
   // 2.   Pick a victim page P from either the free list or the replacer. Always pick from the free list first.
   // 3.   Update P's metadata, zero out memory and add P to the page table.
   // 4.   Set the page ID output parameter. Return a pointer to P.
-  return nullptr;
+
+  page_id_t pid = disk_manager_->AllocatePage();
+
+  if (free_list_.empty() && replacer_->Size() == 0)
+  {
+    *page_id = INVALID_PAGE_ID;
+    return nullptr;
+  }
+  *page_id = pid;
+  Page* page = getPage(pid);
+
+  return page;
 }
 
 bool BufferPoolManager::DeletePageImpl(page_id_t page_id) {
