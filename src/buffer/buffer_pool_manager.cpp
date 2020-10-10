@@ -46,6 +46,10 @@ Page *BufferPoolManager::FetchPageImpl(page_id_t page_id) {
   //1.
   std::unordered_map<page_id_t,frame_id_t>::iterator it = page_table_.find(page_id);
   Page *page = nullptr;
+  if (free_list_.empty() && replacer_->Size() == 0)
+  {
+    return nullptr;
+  }
   if (it != page_table_.end())
   {
     //1.1
@@ -56,15 +60,10 @@ Page *BufferPoolManager::FetchPageImpl(page_id_t page_id) {
     return page;
   }
 
-  if (free_list_.empty() && replacer_->Size() == 0)
-  {
-    return nullptr;
-  }
-
-  return getPage(page_id);
+  return getPage(page_id, false);
 }
 
-Page* BufferPoolManager::getPage(page_id_t page_id)
+Page* BufferPoolManager::getPage(page_id_t page_id, bool new_page)
 {
 
   Page *page = nullptr;
@@ -74,7 +73,8 @@ Page* BufferPoolManager::getPage(page_id_t page_id)
   page_id_t id;
   if (free_list_.size() > 0){
     id = *(free_list_.begin());
-    free_list_.pop_front();  
+    free_list_.pop_front();
+    if (!new_page) disk_manager_->ReadPage(page_id, page->data_);  
   }
   else if (replacer_->Size() != 0){
     bool ans = replacer_->Victim(&id);
@@ -106,6 +106,7 @@ bool BufferPoolManager::UnpinPageImpl(page_id_t page_id, bool is_dirty) {
 
   auto it = page_table_.find(page_id);
   replacer_->Unpin(it->second);
+
   return true;
 }
 
@@ -130,13 +131,15 @@ Page *BufferPoolManager::NewPageImpl(page_id_t *page_id) {
 
   page_id_t pid = disk_manager_->AllocatePage();
 
-  if (free_list_.empty() && replacer_->Size() == 0)
+
+  if (free_list_.empty() && (replacer_->Size() == 0))
   {
     *page_id = INVALID_PAGE_ID;
     return nullptr;
   }
+
   *page_id = pid;
-  Page* page = getPage(pid);
+  Page* page = getPage(pid, true);
 
   return page;
 }
@@ -147,11 +150,27 @@ bool BufferPoolManager::DeletePageImpl(page_id_t page_id) {
   // 1.   If P does not exist, return true.
   // 2.   If P exists, but has a non-zero pin-count, return false. Someone is using the page.
   // 3.   Otherwise, P can be deleted. Remove P from the page table, reset its metadata and return it to the free list.
+  disk_manager_->DeallocatePage(page_id);
+  if (page_table_.find(page_id) == page_table_.end()) return false;
+  Page* p = &pages_[page_id];
+
+  if (p->pin_count_ != 0) return false;
+  page_table_.erase(page_id);
+  p->pin_count_ = 0;
+  p->page_id_ = INVALID_PAGE_ID;
+
+  free_list_.emplace_back(page_id);
+
   return false;
 }
 
 void BufferPoolManager::FlushAllPagesImpl() {
   // You can do it!
+  for(size_t i = 0 ; i < pool_size_; i++)
+  {
+    FlushPageImpl(i);
+  }
+
 }
 
 }  // namespace bustub

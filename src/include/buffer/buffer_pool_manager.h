@@ -95,7 +95,7 @@ class BufferPoolManager {
   /** @return pointer to all the pages in the buffer pool */
   Page *GetPages() { return pages_; }
 
-  Page* getPage(page_id_t page_id);
+  Page* getPage(page_id_t page_id, bool x);
 
   /** @return size of the buffer pool */
   size_t GetPoolSize() { return pool_size_; }

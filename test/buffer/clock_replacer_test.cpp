@@ -23,21 +23,28 @@ TEST(ClockReplacerTest, BasicTest) {
 
   ClockReplacer clock_replacer(7);
 
+  EXPECT_EQ(0, clock_replacer.Size());
+
   // Scenario: unpin six elements, i.e. add them to the replacer.
   clock_replacer.Unpin(1);
-  clock_replacer.Unpin(2);
+  EXPECT_EQ(1, clock_replacer.Size());
 
-  clock_replacer.Unpin(1);
+  
   clock_replacer.Unpin(2);
+  EXPECT_EQ(2, clock_replacer.Size());
+
+  
+
 
   clock_replacer.Unpin(3);
   clock_replacer.Unpin(4);
   
   clock_replacer.Unpin(5);
   clock_replacer.Unpin(6);
+  clock_replacer.Unpin(7);
 
   
-  EXPECT_EQ(6, clock_replacer.Size());
+  
   
   
   
@@ -46,6 +53,12 @@ TEST(ClockReplacerTest, BasicTest) {
   
   int value;
   clock_replacer.Victim(&value);
+  EXPECT_EQ(1, value);
+  
+  clock_replacer.Victim(&value);
+  EXPECT_EQ(2, value);
+
+  clock_replacer.Victim(&value);
   EXPECT_EQ(3, value);
   
   clock_replacer.Victim(&value);
@@ -53,15 +66,12 @@ TEST(ClockReplacerTest, BasicTest) {
 
   clock_replacer.Victim(&value);
   EXPECT_EQ(5, value);
-  
+
   clock_replacer.Victim(&value);
   EXPECT_EQ(6, value);
 
   clock_replacer.Victim(&value);
-  EXPECT_EQ(1, value);
-
-  clock_replacer.Victim(&value);
-  EXPECT_EQ(2, value);
+  EXPECT_EQ(7, value);
 
 
   clock_replacer.Unpin(3);
@@ -92,6 +102,8 @@ TEST(ClockReplacerTest, BasicTest) {
 
   clock_replacer.Victim(&value);
   EXPECT_EQ(6, value);
+
+  
   
   
   

@@ -85,7 +85,7 @@ struct Clock{
     {
       temp = temp->next;
     }
-    temp->value = value;  
+    temp->value = value; 
     
   }
 
@@ -94,8 +94,12 @@ struct Clock{
 
     ClockSlot* temp = head->next;
 
-    size_t iter = 1;
-    bool n = false;
+    size_t iter = 0;
+
+    if (head->value != -1)
+    {
+      iter+=1;
+    }
     while(current_head_id != temp->position)
     {
       if (temp->value == -1)
@@ -103,11 +107,9 @@ struct Clock{
         temp = temp->next;
         continue;
       }
-      n = true;
       temp = temp->next;
       iter += 1;
     }
-    if (!n) --iter;
     return iter;
   }
 
