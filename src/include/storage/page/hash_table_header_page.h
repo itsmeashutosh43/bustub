@@ -16,6 +16,8 @@
 #include <climits>
 #include <cstdlib>
 #include <string>
+#include <vector>
+
 
 #include "storage/index/generic_key.h"
 #include "storage/page/hash_table_page_defs.h"
@@ -94,7 +96,7 @@ class HashTableHeaderPage {
   __attribute__((unused)) size_t size_;
   __attribute__((unused)) page_id_t page_id_;
   __attribute__((unused)) size_t next_ind_;
-  __attribute__((unused)) page_id_t block_page_ids_[0];
+  __attribute__((unused)) std::vector<page_id_t> block_page_ids_;
 };
 
 }  // namespace bustub

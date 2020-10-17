@@ -10,25 +10,37 @@
 //
 //===----------------------------------------------------------------------===//
 
+
 #include "storage/page/hash_table_header_page.h"
 
 namespace bustub {
-page_id_t HashTableHeaderPage::GetBlockPageId(size_t index) { return 0; }
+page_id_t HashTableHeaderPage::GetBlockPageId(size_t index) { 
+    return block_page_ids_.at(index); 
+}
 
-page_id_t HashTableHeaderPage::GetPageId() const { return 0; }
+page_id_t HashTableHeaderPage::GetPageId() const { return page_id_; }
 
-void HashTableHeaderPage::SetPageId(bustub::page_id_t page_id) {}
+void HashTableHeaderPage::SetPageId(bustub::page_id_t page_id) {
+    page_id_ = page_id;
+}
 
-lsn_t HashTableHeaderPage::GetLSN() const { return 0; }
+lsn_t HashTableHeaderPage::GetLSN() const { return lsn_; }
 
-void HashTableHeaderPage::SetLSN(lsn_t lsn) {}
+void HashTableHeaderPage::SetLSN(lsn_t lsn) {lsn_ = lsn;}
 
-void HashTableHeaderPage::AddBlockPageId(page_id_t page_id) {}
+void HashTableHeaderPage::AddBlockPageId(page_id_t page_id) {
 
-size_t HashTableHeaderPage::NumBlocks() { return 0; }
+    block_page_ids_.push_back(page_id);
+}
 
-void HashTableHeaderPage::SetSize(size_t size) {}
+size_t HashTableHeaderPage::NumBlocks() { 
+    return block_page_ids_.size(); 
+    
+}
 
-size_t HashTableHeaderPage::GetSize() const { return 0; }
+void HashTableHeaderPage::SetSize(size_t size) {
+    size_ = size;}
+
+size_t HashTableHeaderPage::GetSize() const { return size_; }
 
 }  // namespace bustub
