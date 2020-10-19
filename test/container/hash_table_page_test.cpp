@@ -22,6 +22,7 @@
 
 namespace bustub {
 
+/*
 // NOLINTNEXTLINE
 TEST(HashTablePageTest, DISABLED_BlockPageSampleTest) {
   DiskManager *disk_manager = new DiskManager("test.db");
@@ -64,15 +65,18 @@ TEST(HashTablePageTest, DISABLED_BlockPageSampleTest) {
   delete disk_manager;
   delete bpm;
 }
+*/
 
-/*
+
 // NOLINTNEXTLINE
-TEST(HashTablePageTest, DISABLED_BlockPageSampleTest) {
+TEST(HashTablePageTest, SimpleTest) {
   DiskManager *disk_manager = new DiskManager("test.db");
   auto *bpm = new BufferPoolManager(5, disk_manager);
 
   // get a block page from the BufferPoolManager
   page_id_t block_page_id = INVALID_PAGE_ID;
+
+  std::cout<<"Heeyoo"<<std::endl;
 
   auto block_page =
       reinterpret_cast<HashTableBlockPage<int, int, IntComparator> *>(bpm->NewPage(&block_page_id, nullptr)->GetData());
@@ -118,7 +122,7 @@ TEST(HashTablePageTest, DISABLED_BlockPageSampleTest) {
   delete bpm;
   
 }
-*/
+
 
 
 }  // namespace bustub
