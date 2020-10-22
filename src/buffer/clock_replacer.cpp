@@ -40,7 +40,7 @@ void ClockReplacer::Unpin(frame_id_t frame_id) {
     m.lock();
     if(!clock->already_present(frame_id,1))
     {clock->add(frame_id);
-    std::cout<<"Should have added after unpin"<<std::endl;}
+    }
     m.unlock();
     
 }
