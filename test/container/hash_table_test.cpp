@@ -74,12 +74,13 @@ TEST(HashTableTest, SampleTest) {
       }
     }
   }
-  /*
+  
   
   // look for a key that does not exist
   std::vector<int> res;
   ht.GetValue(nullptr, 20, &res);
   EXPECT_EQ(0, res.size());
+  
 
   // delete some values
   for (int i = 0; i < 5; i++) {
@@ -94,6 +95,7 @@ TEST(HashTableTest, SampleTest) {
       EXPECT_EQ(2 * i, res[0]);
     }
   }
+  
 
   // delete all values
   for (int i = 0; i < 5; i++) {
@@ -104,7 +106,7 @@ TEST(HashTableTest, SampleTest) {
       EXPECT_TRUE(ht.Remove(nullptr, i, 2 * i));
     }
   }
-  */
+  
   disk_manager->ShutDown();
   remove("test.db");
   delete disk_manager;

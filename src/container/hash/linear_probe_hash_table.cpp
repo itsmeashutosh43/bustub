@@ -122,7 +122,6 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
   auto expected_index = this->hash_fn_.GetHash(key) % header_page->GetSize();
   
   auto starting_point = true;
-  size_t count = 0;
 
   for(auto i = expected_index; ; i = ((i + 1) % header_page->GetSize()))
   {
@@ -145,7 +144,6 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
     if (block->IsOccupied(slot_id)){
       continue;
     }
-    count += 1;
     auto success = block->Insert(slot_id, key, value);
     if (success)
     {
@@ -164,8 +162,41 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
  *****************************************************************************/
 template <typename KeyType, typename ValueType, typename KeyComparator>
 bool HASH_TABLE_TYPE::Remove(Transaction *transaction, const KeyType &key, const ValueType &value) {
+  std::vector<ValueType> results;
+  if (!this->GetValue(nullptr, key, &results))
+  {
+    return false; 
+  }
+
+  auto header_page = reinterpret_cast<HashTableHeaderPage *>(buffer_pool_manager_->FetchPage(header_page_id_, nullptr));
+  auto expected_page = this->hash_fn_.GetHash(key) % header_page->GetSize();
+  auto starting_point = true;
+
+  for(size_t i = expected_page ; ; i = (expected_page + 1) % header_page->GetSize())
+  {
+    if (i == expected_page)
+    {
+      if (!starting_point) break;
+      starting_point = false;
+    }
+
+    size_t current_page_id = i/BLOCK_ARRAY_SIZE;
+    slot_offset_t slot_id = i % BLOCK_ARRAY_SIZE;
+    auto page = this->buffer_pool_manager_->FetchPage(header_page->GetBlockPageId(current_page_id));
+    auto block = reinterpret_cast<HashTableBlockPage<KeyType,ValueType,KeyComparator>* >(page->GetData());
+
+    if (block->IsReadable(slot_id))
+      {
+      block->Remove(slot_id);
+      this->buffer_pool_manager_->FlushPage(page->GetPageId());
+      return true;
+      }
+  }
+    
   return false;
-}
+  }
+
+
 
 /*****************************************************************************
  * RESIZE
