@@ -46,7 +46,7 @@ TEST(HashTableTest, SampleTest) {
   }
 
   
-  /*
+  
   // insert one more value for each key
   for (int i = 0; i < 5; i++) {
     if (i == 0) {
@@ -55,9 +55,11 @@ TEST(HashTableTest, SampleTest) {
     } else {
       EXPECT_TRUE(ht.Insert(nullptr, i, 2 * i));
     }
+    
     ht.Insert(nullptr, i, 2 * i);
     std::vector<int> res;
     ht.GetValue(nullptr, i, &res);
+    
     if (i == 0) {
       // duplicate values for the same key are not allowed
       EXPECT_EQ(1, res.size());
@@ -72,9 +74,8 @@ TEST(HashTableTest, SampleTest) {
       }
     }
   }
-
+  /*
   
-
   // look for a key that does not exist
   std::vector<int> res;
   ht.GetValue(nullptr, 20, &res);

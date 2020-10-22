@@ -104,10 +104,25 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
   1) get header page
   2) get corresponding block page and location
   */
+
+
+  std::vector<ValueType> result;
+  if (this->GetValue(nullptr,key,&result))
+  { 
+    for(auto it = result.begin() ; it != result.end() ; it++)
+    {
+      if (*it == value)
+      {
+        return false;
+      }
+    }
+  }
+ 
   auto header_page = reinterpret_cast<HashTableHeaderPage*>(buffer_pool_manager_->FetchPage(header_page_id_,nullptr));
   auto expected_index = this->hash_fn_.GetHash(key) % header_page->GetSize();
   
   auto starting_point = true;
+  size_t count = 0;
 
   for(auto i = expected_index; ; i = ((i + 1) % header_page->GetSize()))
   {
@@ -127,6 +142,10 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
     auto page = this->buffer_pool_manager_->FetchPage(header_page->GetBlockPageId(current_page_id));
     auto block = reinterpret_cast<HashTableBlockPage<KeyType,ValueType,KeyComparator>*>(page->GetData());
 
+    if (block->IsOccupied(slot_id)){
+      continue;
+    }
+    count += 1;
     auto success = block->Insert(slot_id, key, value);
     if (success)
     {
